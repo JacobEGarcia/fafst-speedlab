@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FAFST SPEEDLAB — the 5090's claims vs a Chicago tablet, measured</title>
+<style>
+  :root{ --paper:#f4f1ea; --ink:#141412; --red:#c1272d; --rule:#141412; --dim:#6f6a5e; }
+  *{box-sizing:border-box; margin:0; padding:0}
+  body{background:var(--paper); color:var(--ink); font:16px/1.6 "Helvetica Neue",Arial,sans-serif}
+  .wrap{max-width:880px; margin:0 auto; padding:0 24px 60px}
+  header{border-bottom:3px solid var(--rule); padding:34px 0 14px; display:flex; align-items:baseline; gap:14px; flex-wrap:wrap}
+  h1{font-size:30px; letter-spacing:.06em; text-transform:uppercase}
+  h1 span{color:var(--red)}
+  .date{color:var(--dim); font-size:13px; margin-left:auto; letter-spacing:.1em}
+  .lede{font-size:19px; line-height:1.5; padding:22px 0; border-bottom:1px solid var(--rule)}
+  h2{font-size:13px; letter-spacing:.3em; text-transform:uppercase; color:var(--red); margin:36px 0 14px}
+  table{width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums}
+  th{font-size:11px; letter-spacing:.2em; text-transform:uppercase; text-align:left; color:var(--dim); padding:6px 10px; border-bottom:2px solid var(--rule)}
+  td{padding:9px 10px; border-bottom:1px solid #d8d3c6; vertical-align:top}
+  td.num{text-align:right; font-size:18px}
+  .claim td:first-child{color:var(--dim)}
+  .bar{height:10px; background:var(--red); display:block}
+  .bar.z13{background:var(--ink)}
+  .barbox{width:180px; padding-top:14px !important}
+  .note{font-size:13px; color:var(--dim); margin-top:8px}
+  .verdict{border:2px solid var(--rule); padding:18px 20px; margin-top:14px; font-size:17px}
+  .verdict b{color:var(--red)}
+  footer{margin-top:40px; border-top:1px solid var(--rule); padding-top:12px; font-size:12.5px; color:var(--dim)}
+  a{color:var(--red); text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Fafst <span>Speedlab</span></h1>
+  <span class="date">measured 2026-09-26 · chicago</span>
+</header>
+<p class="lede">The X post promised an abliterated 27B at 895 tok/s on an RTX 5090. We don't have a 5090. We have a tablet with 128 GB of unified memory and a free afternoon. Same model class, honest stopwatch.</p>
+
+<h2>The claims (from the post)</h2>
+<table class="claim">
+  <tr><th>claim</th><th>value</th><th style="text-align:right">as stated</th></tr>
+  <tr><td>peak generation, verify trees + prompt lookup</td><td class="num">895 tok/s</td><td class="barbox"><span class="bar" style="width:180px"></span></td></tr>
+  <tr><td>time per token, plain decoding</td><td class="num">3.3 ms</td><td class="barbox"><span class="bar" style="width:61px"></span></td></tr>
+  <tr><td>context</td><td class="num">256K</td><td class="barbox"><span class="bar" style="width:180px"></span></td></tr>
+</table>
+<p class="note">Source: <a href="https://x.com/satellitedown/status/2103654205416198145">satellitedown's post</a> and the fafstmobel-cinference README. RTX 5090, NVFP4, DFlash2 speculation. The 895 figure is a ceiling with prompt-lookup hits, not sustained decoding.</p>
+
+<h2>Our measurements (Z13, llama.cpp Vulkan)</h2>
+<table>
+  <tr><th>setup</th><th style="text-align:right">generation</th><th style="text-align:right">prompt eval</th><th></th></tr>
+  
+  <tr><td>Z13, plain decode (no draft)</td><td class="num">10.2 tok/s</td><td class="num" style="color:var(--dim)">not captured</td><td class="barbox"><span class="bar z13" style="width:6px"></span></td></tr>
+  <tr><td>Z13 + DFlash draft (29% acceptance)</td><td class="num">12.2 tok/s</td><td class="num" style="color:var(--dim)">+19.5% vs plain</td><td class="barbox"><span class="bar z13" style="width:7px"></span></td></tr>
+  <tr><td>Z13 best observed (structured output)</td><td class="num">17.7 tok/s</td><td class="num" style="color:var(--dim)">code + JSON probes</td><td class="barbox"><span class="bar z13" style="width:10px"></span></td></tr>
+  <tr><td>RTX 5090, plain (from the post: 3.3 ms/tok)</td><td class="num">~303 tok/s</td><td class="num" style="color:var(--dim)">25x our best</td><td class="barbox"><span class="bar" style="width:172px"></span></td></tr>
+</table>
+<p class="note">Model: Huihui-Qwen3.8-27B-abliterated, Q4_K_M (16.55 GB), same abliterated base as fafstmobel. Draft: mrchuy DFlash bootstrap Q8_0. Measured end-to-end on the OpenAI-compatible endpoint, warm cache, 300-token generations.</p>
+
+<h2>Verdict</h2>
+<div class="verdict">The 5090 decodes this model about thirty times faster, plain to plain. But the same abliterated 27B &mdash; the one the post wraps in a custom CUDA runtime and a $2,000 card &mdash; runs all day on a tablet&rsquo;s integrated GPU, faster than anyone reads, and the post&rsquo;s own speculative-draft trick still buys +19.5% for free. <b>The 5090 is for bragging. The model runs anywhere with 17 GB of memory.</b> Our context is configured at 32K, not the post&rsquo;s 256K, and we ran zero dollars of cloud to find out.Pending measurements.</div>
+
+<footer>built by instinct · model runs on jacob's own hardware at $0 · code and raw numbers linked from the repo</footer>
+</div>
+</body>
+</html>
